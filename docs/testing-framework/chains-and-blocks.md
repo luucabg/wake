@@ -99,6 +99,29 @@ def test_chain():
     assert chain.chain_id == 1020
 ```
 
+### Checking a pinned Ethereum fork
+
+Set `WAKE_ETHEREUM_RPC_URL` to an Ethereum RPC endpoint that serves state at the selected block. The [Ethereum RPC directory](https://eth.chain.love/toolbox/apis) lists endpoints to check.
+
+The default `revm` engine starts the local chain one block after the upstream block used for state. The example forks Ethereum at block 17,000,000 and checks the local starting block before executing transactions.
+
+```python
+from os import environ
+
+from wake.testing import chain
+
+
+def test_ethereum_fork():
+    fork_block = 17_000_000
+    rpc_url = environ["WAKE_ETHEREUM_RPC_URL"]
+    with chain.connect(fork=f"{rpc_url}@{fork_block}", chain_id=31337):
+        assert chain.forked_chain_id == 1
+        assert chain.chain_id == 31337
+        assert chain.blocks["latest"].number == fork_block + 1
+```
+
+`forked_chain_id` identifies the upstream chain. The `chain_id` argument assigns the local chain ID. Use `chain.blocks[fork_block]` to read the upstream block header.
+
 ## Accessing chain blocks
 
 The `chain.blocks` property can be used to access up-to-date chain blocks data.
